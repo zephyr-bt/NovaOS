@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NovaOS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Hamburger Menu -->
+  <div id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+
+  <!-- Side Menu -->
+  <div id="menu">
+    <button onclick="openApp('files')">Files</button>
+    <button onclick="openApp('terminal')">Terminal</button>
+    <button onclick="openApp('settings')">Settings</button>
+  </div>
+
+  <!-- Desktop -->
+  <div id="desktop"></div>
+
+  <!-- Taskbar -->
+  <div id="taskbar">
+    <span class="brand">NovaOS</span>
+    <span id="clock"></span>
+  </div>
+
+  <div id="window-container"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
