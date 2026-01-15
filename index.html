@@ -1,42 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>NovaOS</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flameo | Discord Wallet</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="app-container">
+        <header>
+            <div class="user-profile">
+                <div class="avatar">F</div>
+                <span>Flameo User</span>
+            </div>
+        </header>
 
-<!-- Login Screen -->
-<div id="login-screen">
-  <div class="login-box">
-    <h1>NovaOS</h1>
-    <input placeholder="Username" />
-    <button onclick="login()">Enter</button>
-  </div>
-</div>
+        <div class="balance-card">
+            <p>Your Flame Balance</p>
+            <h1 id="balance-display">🔥 0</h1>
+            <div class="actions">
+                <button onclick="openModal('send')">Send</button>
+                <button onclick="openModal('receive')">Receive</button>
+            </div>
+        </div>
 
-<!-- Hamburger -->
-<div id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+        <div class="history">
+            <h3>Recent Activity</h3>
+            <ul id="transaction-list">
+                <li class="empty-msg">No transactions yet</li>
+            </ul>
+        </div>
+    </div>
 
-<!-- App Menu -->
-<div id="menu">
-  <button onclick="openApp('files')">Files</button>
-  <button onclick="openApp('terminal')">Terminal</button>
-  <button onclick="openApp('settings')">Settings</button>
-</div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Send Flame</h2>
+            <input type="number" id="amount-input" placeholder="Amount">
+            <input type="text" id="recipient-input" placeholder="Recipient Name">
+            <div class="modal-buttons">
+                <button onclick="processTransaction()" class="btn-primary">Confirm</button>
+                <button onclick="closeModal()" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-<!-- Desktop -->
-<div id="desktop"></div>
-
-<!-- Taskbar -->
-<div id="taskbar">
-  <span>NovaOS</span>
-  <span id="clock"></span>
-</div>
-
-<div id="window-container"></div>
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
