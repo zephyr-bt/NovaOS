@@ -2,45 +2,76 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flameo | Discord Wallet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flameo</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <div class="user-profile">
-                <div class="avatar">F</div>
-                <span>Flameo User</span>
+    <div class="status-bar"></div>
+    
+    <div class="app-shell">
+        <nav class="top-nav">
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Pay friends or Discord ID">
             </div>
-        </header>
+            <div class="profile-circle">S</div>
+        </nav>
 
-        <div class="balance-card">
-            <p>Your Flame Balance</p>
-            <h1 id="balance-display">🔥 0</h1>
-            <div class="actions">
-                <button onclick="openModal('send')">Send</button>
-                <button onclick="openModal('receive')">Receive</button>
+        <div class="action-grid">
+            <div class="action-item" onclick="openModal()">
+                <div class="icon-box blue">📱</div>
+                <span>Pay ID</span>
+            </div>
+            <div class="action-item">
+                <div class="icon-box purple">👤</div>
+                <span>To Contact</span>
+            </div>
+            <div class="action-item">
+                <div class="icon-box orange">🏛️</div>
+                <span>Bank Transfer</span>
+            </div>
+            <div class="action-item">
+                <div class="icon-box green">📜</div>
+                <span>Self Transfer</span>
             </div>
         </div>
 
-        <div class="history">
-            <h3>Recent Activity</h3>
-            <ul id="transaction-list">
-                <li class="empty-msg">No transactions yet</li>
-            </ul>
-        </div>
+        <section class="balance-section">
+            <div class="balance-card">
+                <div class="balance-info">
+                    <p>Flame Balance</p>
+                    <h2 id="balance-display">🔥 5,000.00</h2>
+                </div>
+                <button class="check-history">Show History</button>
+            </div>
+        </section>
+
+        <section class="recents">
+            <h3>Recent Transfers</h3>
+            <div class="people-row">
+                <div class="person"><div class="p-avatar">JD</div><span>John</span></div>
+                <div class="person"><div class="p-avatar">AS</div><span>Alice</span></div>
+                <div class="person"><div class="p-avatar">MB</div><span>ModBot</span></div>
+                <div class="person add-new">+</div>
+            </div>
+        </section>
     </div>
 
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <h2 id="modal-title">Send Flame</h2>
-            <input type="number" id="amount-input" placeholder="Amount">
-            <input type="text" id="recipient-input" placeholder="Recipient Name">
-            <div class="modal-buttons">
-                <button onclick="processTransaction()" class="btn-primary">Confirm</button>
-                <button onclick="closeModal()" class="btn-secondary">Cancel</button>
+    <div id="payment-sheet" class="sheet-overlay">
+        <div class="sheet-content">
+            <div class="drag-handle"></div>
+            <h3>Send Flame</h3>
+            <div class="input-group">
+                <input type="text" id="recipient" placeholder="Enter Discord ID">
+                <div class="amount-wrapper">
+                    <span>🔥</span>
+                    <input type="number" id="amount" placeholder="0.00">
+                </div>
             </div>
+            <button class="pay-btn" onclick="processPayment()">Pay Securely</button>
+            <button class="cancel-btn" onclick="closeModal()">Cancel</button>
         </div>
     </div>
 
