@@ -1,90 +1,33 @@
-const container = document.getElementById('window-container');
-const menu = document.getElementById('menu');
+let balance = 5000;
 
-function login() {
-  document.getElementById('login-screen').style.display = 'none';
+function openModal() {
+    document.getElementById('payment-sheet').style.display = 'flex';
 }
 
-function toggleMenu() {
-  menu.classList.toggle('open');
+function closeModal() {
+    document.getElementById('payment-sheet').style.display = 'none';
 }
 
-function openApp(app) {
-  toggleMenu();
+function processPayment() {
+    const amt = parseFloat(document.getElementById('amount').value);
+    const user = document.getElementById('recipient').value;
 
-  const win = document.createElement('div');
-  win.className = 'window';
-
-  let content = '';
-
-  if (app === 'files') content = '<p>index.html<br>style.css<br>script.js</p>';
-  if (app === 'settings') content = '<p>NovaOS v2<br>Dark Theme</p>';
-  if (app === 'terminal') content = terminalUI();
-
-  win.innerHTML = `
-    <div class="window-header">
-      <span>${app.toUpperCase()}</span>
-      <div class="window-controls">
-        <button onclick="this.closest('.window').remove()">✕</button>
-      </div>
-    </div>
-    <div class="window-body">${content}</div>
-  `;
-
-  container.appendChild(win);
-  dragWindow(win);
+    if (amt > 0 && amt <= balance) {
+        balance -= amt;
+        document.getElementById('balance-display').innerText = `🔥 ${balance.toLocaleString()}.00`;
+        
+        // Success feedback (Simulating a real app)
+        const btn = document.querySelector('.pay-btn');
+        btn.innerText = "Payment Successful ✅";
+        btn.style.background = "#34a853";
+        
+        setTimeout(() => {
+            closeModal();
+            btn.innerText = "Pay Securely";
+            btn.style.background = "#1a73e8";
+            document.getElementById('amount').value = '';
+        }, 1500);
+    } else {
+        alert("Insufficient balance!");
+    }
 }
-
-function dragWindow(win) {
-  const header = win.querySelector('.window-header');
-  let x = 0, y = 0, drag = false;
-
-  const start = e => {
-    drag = true;
-    const t = e.touches ? e.touches[0] : e;
-    x = t.clientX - win.offsetLeft;
-    y = t.clientY - win.offsetTop;
-  };
-
-  const move = e => {
-    if (!drag) return;
-    const t = e.touches ? e.touches[0] : e;
-    win.style.left = t.clientX - x + 'px';
-    win.style.top = t.clientY - y + 'px';
-  };
-
-  header.onmousedown = start;
-  header.ontouchstart = start;
-  document.onmousemove = move;
-  document.ontouchmove = move;
-  document.onmouseup = () => drag = false;
-  document.ontouchend = () => drag = false;
-}
-
-function terminalUI() {
-  return `<div id="terminal">
-    <div class="line">NovaOS Terminal</div>
-    <input id="cmd" autofocus onkeydown="runCmd(event)" />
-  </div>`;
-}
-
-function runCmd(e) {
-  if (e.key !== 'Enter') return;
-  const v = e.target.value.trim();
-  let out = '';
-
-  if (v === 'help') out = 'Commands: help, ls, clear, about';
-  else if (v === 'ls') out = 'files settings terminal';
-  else if (v === 'about') out = 'NovaOS v2 — Web OS';
-  else if (v === 'clear') {
-    e.target.parentElement.innerHTML = '<input id="cmd" autofocus onkeydown="runCmd(event)" />';
-    return;
-  } else out = 'Command not found';
-
-  e.target.insertAdjacentHTML('beforebegin', `<div class="line">${out}</div>`);
-  e.target.value = '';
-}
-
-setInterval(() => {
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString();
-}, 1000);
