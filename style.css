@@ -1,23 +1,41 @@
-* { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
-body { background: #f4f7f6; display: flex; justify-content: center; }
+let balance = parseInt(localStorage.getItem('flameBalance')) || 500; // Starting gift of 500
+updateUI();
 
-.app-container { width: 100%; max-width: 400px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+function updateUI() {
+    document.getElementById('balance-display').innerText = `🔥 ${balance}`;
+    localStorage.setItem('flameBalance', balance);
+}
 
-header { padding: 20px; background: #6200ee; color: white; }
-.avatar { width: 40px; height: 40px; background: #ff9800; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; }
+function openModal(type) {
+    document.getElementById('modal').style.display = 'flex';
+    document.getElementById('modal-title').innerText = type === 'send' ? 'Send Flame' : 'Receive Flame';
+}
 
-.balance-card { margin: 20px; padding: 25px; background: #1e1e1e; color: white; border-radius: 20px; text-align: center; }
-.balance-card h1 { font-size: 2.5rem; margin: 10px 0; color: #ffeb3b; }
-.actions { display: flex; gap: 10px; margin-top: 15px; }
-.actions button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+}
 
-.history { padding: 20px; }
-.history h3 { margin-bottom: 15px; color: #555; }
-.history ul { list-style: none; }
-.transaction-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #eee; }
+function processTransaction() {
+    const amount = parseInt(document.getElementById('amount-input').value);
+    const recipient = document.getElementById('recipient-input').value;
 
-/* Modal Styles */
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-.modal-content { background: white; padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; }
-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
-.btn-primary { background: #6200ee; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; margin-top: 10px; }
+    if (amount > 0 && amount <= balance) {
+        balance -= amount;
+        addTransaction(recipient, amount);
+        updateUI();
+        closeModal();
+    } else {
+        alert("Insufficient Flame or invalid amount!");
+    }
+}
+
+function addTransaction(name, amt) {
+    const list = document.getElementById('transaction-list');
+    const emptyMsg = document.querySelector('.empty-msg');
+    if (emptyMsg) emptyMsg.remove();
+
+    const li = document.createElement('li');
+    li.className = 'transaction-item';
+    li.innerHTML = `<span>To: ${name}</span> <span style="color:red">-${amt}</span>`;
+    list.prepend(li);
+}
