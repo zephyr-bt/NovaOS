@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus | Digital Identity</title>
+    <title>Nexus Ultra | Identity Engine</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@500&family=Dancing+Script:wght@700&family=Bebas+Neue&family=JetBrains+Mono:wght@400&family=Silkscreen&display=swap" rel="stylesheet">
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -16,9 +17,27 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
-                    colors: { page: '#050505', panel: '#0a0a0a', border: '#1a1a1a', accent: '#fff' },
-                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        cyber: ['Orbitron', 'sans-serif'],
+                        cursive: ['Dancing Script', 'cursive'],
+                        bebas: ['Bebas Neue', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        small: ['Silkscreen', 'cursive']
+                    },
+                    colors: { page: '#050505', panel: '#0a0a0a', border: '#1a1a1a' },
+                    animation: {
+                        'aurora': 'aurora 10s infinite linear',
+                        'rain': 'rain 1s linear infinite',
+                        'snow': 'snow 3s linear infinite',
+                        'pulse-glow': 'pulseGlow 2s infinite'
+                    },
+                    keyframes: {
+                        aurora: { '0%': { backgroundPosition: '0% 50%' }, '100%': { backgroundPosition: '100% 50%' } },
+                        rain: { '0%': { transform: 'translateY(-10px)' }, '100%': { transform: 'translateY(100vh)' } },
+                        snow: { '0%': { transform: 'translateY(-10px) translateX(0)' }, '100%': { transform: 'translateY(100vh) translateX(20px)' } },
+                        pulseGlow: { '0%, 100%': { boxShadow: '0 0 20px var(--theme-color)' }, '50%': { boxShadow: '0 0 40px var(--theme-color)' } }
+                    }
                 }
             }
         }
@@ -26,134 +45,352 @@
     <style>
         body { background-color: #000; color: #fff; height: 100dvh; overflow: hidden; }
         
-        /* Guns.lol Style Glass */
-        .glass-panel {
-            background: rgba(10, 10, 10, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
-        }
+        /* UI Elements */
+        .glass-panel { background: rgba(15, 15, 15, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .input-field { background: #000; border: 1px solid #222; color: white; padding: 10px; border-radius: 8px; width: 100%; outline: none; font-size: 12px; transition: 0.2s; }
+        .input-field:focus { border-color: #555; }
         
-        /* Inputs */
-        .input-field {
-            background: #000; border: 1px solid #222; color: white;
-            padding: 12px 16px; border-radius: 12px; width: 100%; outline: none;
-            transition: all 0.2s; font-size: 13px;
-        }
-        .input-field:focus { border-color: #555; box-shadow: 0 0 0 2px rgba(255,255,255,0.1); }
+        /* Color Grid */
+        .color-btn { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
+        .color-btn:hover { transform: scale(1.2); }
+        .color-btn.active { border-color: white; transform: scale(1.1); }
         
-        /* Custom Scrollbar */
+        /* Effects CSS */
+        .effect-rain { background-image: url('https://cdn.pixabay.com/photo/2012/04/18/13/22/rain-37043_1280.png'); opacity: 0.3; animation: rain 0.5s linear infinite; }
+        .effect-snow { background-image: url('https://png.pngtree.com/png-clipart/20190617/original/pngtree-snow-floating-material-png-image_3838760.jpg'); opacity: 0.2; animation: snow 5s linear infinite; }
+        .effect-aurora { background: linear-gradient(45deg, #ff00cc, #3333ff, #00ffcc); background-size: 400% 400%; animation: aurora 15s ease infinite; opacity: 0.3; mix-blend-mode: screen; }
+        .effect-rainbow { background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); -webkit-background-clip: text; color: transparent !important; }
+
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
         
         /* Toast */
-        #toast {
-            position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-100px);
-            background: rgba(255, 255, 255, 0.95); color: black; padding: 12px 24px;
-            border-radius: 99px; font-weight: 600; font-size: 13px; z-index: 9999;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; items-center; gap: 10px; box-shadow: 0 10px 40px rgba(255,255,255,0.1);
-        }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 99px; font-weight: bold; font-size: 12px; z-index: 9999; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
         #toast.show { transform: translateX(-50%) translateY(0); }
-        
-        /* Loader */
-        .loader { width: 16px; height: 16px; border: 2px solid #000; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="flex flex-col md:flex-row text-sm selection:bg-white/20">
+<body class="flex flex-col md:flex-row text-sm">
 
     <div id="toast"><div id="toast-icon"></div> <span id="toast-msg">Notification</span></div>
 
-    <div id="view-app" class="hidden fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-4">
-        <div class="absolute inset-0 z-0">
-             <div id="v-glow" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white opacity-[0.03] blur-[150px] rounded-full"></div>
-             <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+    <aside class="w-full md:w-[500px] bg-panel border-r border-border flex flex-col h-full z-20 shadow-2xl relative">
+        <header class="h-14 px-4 border-b border-border flex items-center justify-between bg-black/50 backdrop-blur-md">
+            <div class="flex items-center gap-2 font-bold tracking-tight">
+                <div id="status-dot" class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_red]"></div>
+                Nexus<span class="text-zinc-500">Ultra</span>
+            </div>
+            <button id="btn-save" class="bg-white text-black px-4 py-1.5 rounded-lg text-xs font-bold hover:scale-105 transition flex items-center gap-2">
+                <i data-lucide="cloud-lightning" class="w-3 h-3"></i> Save
+            </button>
+        </header>
+
+        <div class="flex border-b border-border bg-black/20">
+            <button class="flex-1 py-3 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition" onclick="scrollToSection('sec-identity')">Identity</button>
+            <button class="flex-1 py-3 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition" onclick="scrollToSection('sec-visuals')">Visuals</button>
+            <button class="flex-1 py-3 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition" onclick="scrollToSection('sec-effects')">Effects</button>
         </div>
 
-        <div class="relative z-10 glass-panel w-full max-w-[420px] rounded-[32px] p-8 md:p-12 text-center animate-in fade-in zoom-in duration-500">
-            <div class="relative inline-block mb-6 group">
-                <div id="v-avatar-glow" class="absolute -inset-0.5 bg-gradient-to-tr from-white to-zinc-500 rounded-full blur opacity-40 group-hover:opacity-60 transition duration-1000"></div>
-                <img id="v-avatar" src="" class="relative w-28 h-28 rounded-full border border-white/10 object-cover bg-black">
-                <div class="absolute bottom-1 right-1 w-4 h-4 bg-black rounded-full flex items-center justify-center" title="Verified">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                </div>
-            </div>
+        <div id="controls-area" class="flex-1 overflow-y-auto p-5 space-y-8 pb-32">
             
-            <h1 id="v-name" class="text-3xl font-bold tracking-tight text-white mb-2">Loading...</h1>
-            <div id="v-role-badge" class="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-mono tracking-wider uppercase text-zinc-400 mb-6">DEV</div>
-            
-            <p id="v-bio" class="text-zinc-500 text-sm leading-relaxed mb-10 max-w-[80%] mx-auto font-medium">...</p>
-
-            <div id="v-links" class="space-y-3">
+            <div id="sec-identity" class="space-y-4">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500 mb-2"><i data-lucide="user" class="w-3 h-3"></i> Core Identity</div>
+                
+                <div class="relative">
+                    <span class="absolute left-3 top-3 text-zinc-500">@</span>
+                    <input id="in-username" type="text" class="input-field pl-7 !bg-zinc-900 !border-zinc-800" placeholder="username (required)">
                 </div>
-            
-            <div class="mt-12 opacity-20 hover:opacity-50 transition cursor-default">
-                <span class="font-mono text-[10px] tracking-[0.3em]">NEXUS</span>
-            </div>
-        </div>
-    </div>
 
-    <div id="editor-app" class="flex-1 flex flex-col md:flex-row h-full">
-        
-        <aside class="w-full md:w-[480px] bg-panel border-r border-border flex flex-col z-20 shadow-2xl h-full relative">
-            <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 pointer-events-none"></div>
-
-            <header class="h-18 p-6 border-b border-border shrink-0 flex items-center justify-between bg-panel/50 backdrop-blur-md sticky top-0 z-30">
-                <div class="flex items-center gap-3">
-                    <div id="status-dot" class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_red]"></div>
-                    <span class="font-bold tracking-tight text-lg">Nexus<span class="text-zinc-600">Cloud</span></span>
+                <div class="grid grid-cols-2 gap-2">
+                    <input id="in-name" type="text" class="input-field" placeholder="Display Name" oninput="render()">
+                    <input id="in-role" type="text" class="input-field" placeholder="Role / Tagline" oninput="render()">
                 </div>
-                <button id="btn-save" class="group relative bg-white text-black pl-4 pr-5 py-2.5 rounded-xl text-xs font-bold hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                    <div class="flex items-center gap-2 relative z-10">
-                        <i data-lucide="cloud-lightning" class="w-3.5 h-3.5"></i> <span>Initialize</span>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-center cursor-pointer hover:bg-zinc-800 transition relative overflow-hidden group">
+                        <input type="file" id="file-avatar" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFile(this, 'avatar')">
+                        <i data-lucide="camera" class="w-4 h-4 mx-auto mb-1 text-zinc-400 group-hover:text-white"></i>
+                        <span class="text-[10px] text-zinc-500">Upload Avatar</span>
                     </div>
-                </button>
-            </header>
+                     <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-center cursor-pointer hover:bg-zinc-800 transition relative overflow-hidden group">
+                        <input type="file" id="file-banner" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFile(this, 'banner')">
+                        <i data-lucide="image" class="w-4 h-4 mx-auto mb-1 text-zinc-400 group-hover:text-white"></i>
+                        <span class="text-[10px] text-zinc-500">Upload Banner</span>
+                    </div>
+                </div>
 
-            <div class="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
+                <textarea id="in-bio" rows="2" class="input-field resize-none" placeholder="Bio..." oninput="render()"></textarea>
                 
                 <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="text-[10px] font-mono uppercase text-zinc-500 tracking-widest">Identity Handle</label>
-                        <span class="text-[9px] bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-500">REQUIRED</span>
-                    </div>
-                    <div class="relative group">
-                        <span class="absolute left-4 top-3.5 text-zinc-600 font-mono text-sm group-focus-within:text-white transition">/</span>
-                        <input id="in-username" type="text" class="input-field pl-8 !bg-black/50 !border-zinc-800 focus:!border-white" placeholder="username">
-                    </div>
-                    <p class="text-[10px] text-zinc-600">This creates your URL: <span class="text-zinc-500 font-mono">domain.com/username</span></p>
-                </div>
+                     <input id="in-gh" class="input-field" placeholder="GitHub" oninput="render()">
+                     <input id="in-tw" class="input-field" placeholder="Twitter" oninput="render()">
+                     <input id="in-web" class="input-field" placeholder="Website" oninput="render()">
+                 </div>
+            </div>
 
-                <hr class="border-zinc-900">
+            <hr class="border-zinc-800">
 
-                <div class="space-y-4">
-                    <label class="text-[10px] font-mono uppercase text-zinc-500 tracking-widest">Core Data</label>
-                    <input id="in-name" type="text" class="input-field" placeholder="Display Name" oninput="renderPreview()">
-                    <input id="in-role" type="text" class="input-field" placeholder="Role / Tagline" oninput="renderPreview()">
-                    <textarea id="in-bio" rows="3" class="input-field resize-none" placeholder="Short bio..." oninput="renderPreview()"></textarea>
-                </div>
-
-                <div class="space-y-4">
-                    <label class="text-[10px] font-mono uppercase text-zinc-500 tracking-widest">Connections</label>
-                    
-                    <div class="flex gap-2">
-                        <div class="w-10 flex items-center justify-center bg-zinc-900 rounded-lg border border-zinc-800"><i data-lucide="github" class="w-4 h-4 text-zinc-400"></i></div>
-                        <input id="in-gh" type="text" class="input-field" placeholder="GitHub Username" oninput="renderPreview()">
-                    </div>
-                    <div class="flex gap-2">
-                        <div class="w-10 flex items-center justify-center bg-zinc-900 rounded-lg border border-zinc-800"><i data-lucide="twitter" class="w-4 h-4 text-zinc-400"></i></div>
-                        <input id="in-tw" type="text" class="input-field" placeholder="Twitter Handle" oninput="renderPreview()">
-                    </div>
-                     <div class="flex gap-2">
-                        <div class="w-10 flex items-center justify-center bg-zinc-900 rounded-lg border border-zinc-800"><i data-lucide="globe" class="w-4 h-4 text-zinc-400"></i></div>
-                        <input id="in-web" type="text" class="input-field" placeholder="Website URL" oninput="renderPreview()">
+            <div id="sec-visuals" class="space-y-4">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500 mb-2"><i data-lucide="palette" class="w-3 h-3"></i> Appearance</div>
+                
+                <div>
+                    <div class="text-[10px] text-zinc-500 mb-2">ACCENT COLOR</div>
+                    <div class="grid grid-cols-8 gap-2 mb-2" id="color-grid">
+                        </div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <input type="color" id="custom-color" class="h-8 w-8 rounded cursor-pointer bg-transparent border-none" oninput="setCustomColor(this.value)">
+                        <span class="text-[10px] text-zinc-500">Custom Hex</span>
                     </div>
                 </div>
 
-                <div class="space-y-4">
-                    <label class="text-[10px] font-mono uppercase text-zinc-500 tracking-widest">Aura Color</label>
-                    <div class="flex gap-3">
-                        <button onclick="setTheme('#ffffff')" class="w-8 h-8 rounded-full bg-white border-2 border-transparent
+                <div>
+                    <div class="text-[10px] text-zinc-500 mb-2">TYPOGRAPHY</div>
+                    <select id="select-font" class="input-field" onchange="setFont(this.value)">
+                        <option value="font-sans">Inter (Modern)</option>
+                        <option value="font-cyber">Cyber (Orbitron)</option>
+                        <option value="font-bebas">Bebas (Bold Caps)</option>
+                        <option value="font-cursive">Cursive (Elegant)</option>
+                        <option value="font-mono">Mono-Touch (Code)</option>
+                        <option value="font-small">Small (Pixel)</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr class="border-zinc-800">
+
+            <div id="sec-effects" class="space-y-4">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500 mb-2"><i data-lucide="sparkles" class="w-3 h-3"></i> FX Engine</div>
+
+                <div>
+                    <div class="text-[10px] text-zinc-500 mb-2">CARD EFFECT</div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="input-field hover:bg-white/10" onclick="setCardEffect('none')">None</button>
+                        <button class="input-field hover:bg-white/10" onclick="setCardEffect('glow')">Glow</button>
+                        <button class="input-field hover:bg-white/10" onclick="setCardEffect('rainbow')">Rainbow</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-[10px] text-zinc-500 mb-2">ATMOSPHERE</div>
+                    <select id="select-env" class="input-field" onchange="setEnv(this.value)">
+                        <option value="">None</option>
+                        <option value="effect-aurora">Aurora Borealis</option>
+                        <option value="effect-snow">Snow Flakes</option>
+                        <option value="effect-rain">Heavy Rain</option>
+                        <option value="blur">Blur Focus</option>
+                        <option value="night">Night Mood</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+    </aside>
+
+    <main class="flex-1 bg-black hidden md:flex items-center justify-center relative overflow-hidden">
+        <div id="preview-env" class="absolute inset-0 pointer-events-none"></div>
+        <div id="preview-bg-color" class="absolute inset-0 opacity-10 transition-colors duration-1000"></div>
+
+        <div class="relative w-[380px] h-[750px] bg-black rounded-[40px] border-[8px] border-[#151515] shadow-2xl overflow-hidden flex flex-col z-10">
+            <div class="absolute top-0 w-full h-8 bg-[#151515] z-30 flex justify-center"><div class="w-32 h-5 bg-black rounded-b-xl"></div></div>
+            
+            <div id="p-banner" class="h-32 bg-zinc-900 w-full bg-cover bg-center"></div>
+
+            <div class="flex-1 bg-black relative -mt-10 rounded-t-[30px] p-6 text-center overflow-y-auto no-scrollbar z-20">
+                
+                <div class="relative inline-block mb-4">
+                     <div id="p-avatar-fx" class="absolute -inset-2 bg-transparent rounded-full transition-all duration-500"></div>
+                     <img id="p-avatar" src="https://ui-avatars.com/api/?name=User&background=333&color=fff" class="relative w-24 h-24 rounded-full border-4 border-black object-cover bg-black">
+                </div>
+
+                <div id="p-text-container" class="font-sans">
+                    <h2 id="p-name" class="text-2xl font-bold text-white">Your Name</h2>
+                    <p id="p-role" class="text-sm font-medium text-zinc-500 mt-1">Role</p>
+                    <p id="p-bio" class="text-xs text-zinc-600 mt-4 leading-relaxed">Bio goes here.</p>
+                </div>
+
+                <div id="p-links" class="mt-8 space-y-3">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCAGwej9kwnaf9XyqreS2kM9_NLpEa6dOM",
+            authDomain: "nexusbio.firebaseapp.com",
+            projectId: "nexusbio",
+            storageBucket: "nexusbio.firebasestorage.app",
+            messagingSenderId: "742997204418",
+            appId: "1:742997204418:web:78084566fbdb81198c8a5b"
+        };
+
+        // State
+        let db;
+        let state = {
+            color: '#8b5cf6',
+            font: 'font-sans',
+            cardFx: 'none',
+            env: '',
+            avatar: null,
+            banner: null
+        };
+
+        // Init
+        window.onload = () => {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                document.getElementById('status-dot').classList.replace('bg-red-500', 'bg-green-500');
+            } catch(e) { console.error(e); }
+
+            initColors();
+            render();
+            lucide.createIcons();
+        };
+
+        // --- VISUAL ENGINE ---
+        function initColors() {
+            const colors = [
+                '#ffffff', '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', 
+                '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e',
+                '#a1a1aa', '#1e293b', '#ff00ff', '#00ff00', '#00ffff', '#ffff00'
+            ];
+            const grid = document.getElementById('color-grid');
+            colors.forEach(c => {
+                const btn = document.createElement('div');
+                btn.className = 'color-btn bg-white';
+                btn.style.backgroundColor = c;
+                btn.onclick = () => applyColor(c);
+                grid.appendChild(btn);
+            });
+        }
+
+        function applyColor(hex) {
+            state.color = hex;
+            document.documentElement.style.setProperty('--theme-color', hex);
+            document.getElementById('p-role').style.color = hex;
+            document.getElementById('preview-bg-color').style.backgroundColor = hex;
+            
+            // If glow effect is active
+            if(state.cardFx === 'glow') {
+                document.getElementById('p-avatar-fx').style.boxShadow = `0 0 30px ${hex}`;
+                document.getElementById('p-avatar-fx').style.backgroundColor = hex;
+            }
+        }
+        
+        function setCustomColor(val) { applyColor(val); }
+
+        function setFont(fontClass) {
+            state.font = fontClass;
+            const container = document.getElementById('p-text-container');
+            container.className = fontClass; // Apply to container
+        }
+
+        function setCardEffect(fx) {
+            state.cardFx = fx;
+            const avFx = document.getElementById('p-avatar-fx');
+            const name = document.getElementById('p-name');
+            
+            // Reset
+            avFx.className = 'absolute -inset-2 rounded-full transition-all duration-500';
+            name.classList.remove('effect-rainbow');
+            
+            if(fx === 'glow') {
+                avFx.classList.add('blur-xl', 'opacity-50');
+                avFx.style.backgroundColor = state.color;
+            } else if (fx === 'rainbow') {
+                name.classList.add('effect-rainbow');
+                avFx.style.background = 'linear-gradient(to right, red, orange, yellow, green, blue, purple)';
+                avFx.classList.add('animate-spin', 'blur-lg', 'opacity-30');
+            }
+        }
+
+        function setEnv(envClass) {
+            state.env = envClass;
+            const stage = document.getElementById('preview-env');
+            stage.className = `absolute inset-0 pointer-events-none z-0 ${envClass}`;
+        }
+
+        function handleFile(input, type) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if(type === 'avatar') {
+                        state.avatar = e.target.result;
+                        document.getElementById('p-avatar').src = state.avatar;
+                    } else {
+                        state.banner = e.target.result;
+                        document.getElementById('p-banner').style.backgroundImage = `url(${state.banner})`;
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function render() {
+            const name = document.getElementById('in-name').value || "Name";
+            document.getElementById('p-name').innerText = name;
+            document.getElementById('p-role').innerText = document.getElementById('in-role').value || "Role";
+            document.getElementById('p-bio').innerText = document.getElementById('in-bio').value || "Bio";
+            
+            if(!state.avatar) document.getElementById('p-avatar').src = `https://ui-avatars.com/api/?name=${name}&background=111&color=fff`;
+
+            // Links
+            const container = document.getElementById('p-links');
+            container.innerHTML = '';
+            const links = [
+                { id: 'in-gh', icon: 'github', label: 'GitHub' },
+                { id: 'in-tw', icon: 'twitter', label: 'Twitter' },
+                { id: 'in-web', icon: 'globe', label: 'Website' }
+            ];
+            
+            links.forEach(l => {
+                const val = document.getElementById(l.id).value;
+                if(val) {
+                    container.innerHTML += `
+                    <div class="flex items-center p-3 rounded-xl bg-white/5 border border-white/5 gap-3">
+                        <i data-lucide="${l.icon}" class="w-4 h-4" style="color:${state.color}"></i>
+                        <span class="text-xs font-bold">${l.label}</span>
+                    </div>`;
+                }
+            });
+            lucide.createIcons();
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- PUBLISH ---
+        document.getElementById('btn-save').addEventListener('click', async () => {
+            const username = document.getElementById('in-username').value.trim().toLowerCase();
+            if(!username) return alert("Username Required");
+            
+            const btn = document.getElementById('btn-save');
+            btn.innerText = "Saving...";
+            
+            try {
+                await db.collection("users").doc(username).set({
+                    ...state,
+                    name: document.getElementById('in-name').value,
+                    role: document.getElementById('in-role').value,
+                    bio: document.getElementById('in-bio').value,
+                    links: {
+                        gh: document.getElementById('in-gh').value,
+                        tw: document.getElementById('in-tw').value,
+                        web: document.getElementById('in-web').value
+                    },
+                    timestamp: new Date()
+                });
+                btn.innerText = "Saved!";
+                alert(`Live: ${window.location.origin}/?u=${username}`);
+            } catch(e) {
+                console.error(e);
+                btn.innerText = "Failed";
+                alert("Error saving. Check console.");
+            }
+        });
+    </script>
+</body>
+</html>
