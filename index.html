@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus | Identity Engine</title>
+    <title>Nexus | God Mode</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;700&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -16,90 +16,230 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'], outfit: ['Outfit', 'sans-serif'] },
-                    colors: { page: '#050505', panel: '#0f0f0f', border: '#222' }
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        outfit: ['Outfit', 'sans-serif'],
+                        space: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: { page: '#050505', panel: '#0a0a0a', border: '#1a1a1a' },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'scan': 'scan 4s linear infinite',
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        scan: { '0%': { transform: 'translateY(-100%)' }, '100%': { transform: 'translateY(100%)' } }
+                    }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #050505; color: #fff; height: 100dvh; overflow: hidden; }
-        .input-dark { background: #0a0a0a; border: 1px solid #222; color: white; padding: 12px; border-radius: 8px; width: 100%; outline: none; transition: 0.2s; font-size: 13px; }
-        .input-dark:focus { border-color: #555; }
-        /* Toast */
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 99px; font-weight: bold; font-size: 12px; z-index: 9999; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
-        #toast.show { transform: translateX(-50%) translateY(0); }
+        /* SMOOTH SCROLL & SELECTION */
+        body { background-color: #030303; color: #fff; height: 100dvh; overflow: hidden; font-family: 'Inter', sans-serif; }
+        ::selection { background: rgba(255, 255, 255, 0.2); }
+        
+        /* SCROLLBAR HIDING */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* GLASSMORPHISM */
+        .glass {
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* INPUTS */
+        .input-dark {
+            background: #080808; border: 1px solid #222; color: #eee;
+            padding: 12px; border-radius: 10px; width: 100%; outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 13px;
+        }
+        .input-dark:focus { border-color: #555; box-shadow: 0 0 0 2px rgba(255,255,255,0.05); }
+
+        /* CURSORS */
+        .cursor-crosshair { cursor: crosshair; }
+        .cursor-pointer { cursor: pointer; }
+        .cursor-default { cursor: default; }
+
+        /* EFFECTS */
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 10;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+        }
+        .vignette {
+            position: fixed; inset: 0; pointer-events: none; z-index: 10;
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%);
+        }
+        .noise {
+            position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0.05;
+            background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+        }
     </style>
 </head>
 <body class="flex flex-col md:flex-row text-sm">
 
-    <div id="toast"><div id="toast-icon"></div> <span id="toast-msg">Notification</span></div>
+    <div id="view-app" class="hidden fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center overflow-hidden">
+        
+        <div id="view-bg-media" class="absolute inset-0 z-0 bg-cover bg-center transition-opacity duration-1000 opacity-0"></div>
+        <video id="view-bg-video" class="absolute inset-0 z-0 w-full h-full object-cover hidden" loop muted autoplay playsinline></video>
+        <div id="view-overlay" class="absolute inset-0 bg-black/60 z-0"></div>
+        
+        <div id="fx-scanlines" class="hidden scanlines"></div>
+        <div id="fx-noise" class="hidden noise"></div>
+        <div id="fx-vignette" class="hidden vignette"></div>
+        
+        <div id="view-loader" class="z-50 relative flex flex-col items-center">
+            <div class="w-16 h-16 border-2 border-zinc-800 border-t-white rounded-full animate-spin"></div>
+            <div class="mt-4 font-mono text-xs tracking-[0.3em] text-zinc-500 animate-pulse-fast">SYSTEM BOOT</div>
+        </div>
 
-    <div id="view-app" class="hidden fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center p-4">
-        <div id="view-bg" class="absolute inset-0 bg-cover bg-center opacity-30"></div>
-        <div class="relative z-10 w-full max-w-[400px] bg-black/80 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 text-center">
-            <img id="v-avatar" src="" class="w-24 h-24 rounded-full border-2 border-white/20 mx-auto mb-4 object-cover bg-zinc-900">
-            <h1 id="v-name" class="text-3xl font-outfit font-bold text-white mb-1">...</h1>
-            <div id="v-role" class="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono uppercase text-zinc-400 mb-6">...</div>
-            <p id="v-bio" class="text-zinc-400 text-sm mb-8">...</p>
-            <div id="v-links" class="space-y-3"></div>
-            <div class="mt-8 opacity-30 text-[10px] font-mono tracking-widest">NEXUS ID</div>
+        <audio id="bg-audio" loop></audio>
+        
+        <button id="audio-toggle" onclick="toggleAudio()" class="hidden fixed top-6 right-6 z-50 p-3 bg-black/50 backdrop-blur rounded-full text-white hover:bg-white hover:text-black transition animate-in fade-in duration-1000">
+            <i data-lucide="volume-x" class="w-4 h-4"></i>
+        </button>
+
+        <div id="view-card" class="hidden relative z-20 glass w-full max-w-[420px] rounded-[30px] p-8 md:p-10 text-center animate-in zoom-in duration-500 mx-4 border border-white/10">
+            
+            <div class="relative inline-block mb-6 group">
+                <div id="v-avatar-glow" class="absolute -inset-3 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+                <img id="v-avatar" src="" class="relative w-28 h-28 rounded-full border-2 border-white/20 object-cover shadow-2xl">
+            </div>
+            
+            <h1 id="v-name" class="text-3xl font-bold tracking-tight text-white mb-2 font-outfit drop-shadow-lg">...</h1>
+            <div id="v-role" class="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[11px] font-mono tracking-wider uppercase text-zinc-300 mb-6 backdrop-blur-md">...</div>
+            
+            <p id="v-bio" class="text-zinc-300 text-sm leading-relaxed mb-8 max-w-[90%] mx-auto font-medium drop-shadow">...</p>
+
+            <div id="v-links" class="space-y-3">
+                </div>
+            
+            <div class="mt-10 opacity-30 hover:opacity-100 transition cursor-default">
+                <span class="font-mono text-[10px] tracking-[0.4em]">NEXUS</span>
+            </div>
         </div>
     </div>
 
-    <aside id="editor-sidebar" class="w-full md:w-[500px] bg-panel border-r border-border flex flex-col h-full z-20 shadow-2xl relative">
-        <header class="h-16 px-6 border-b border-border flex items-center justify-between bg-black/50 backdrop-blur-md sticky top-0 z-30">
+    <aside id="editor-sidebar" class="w-full md:w-[480px] bg-[#050505] border-r border-[#151515] flex flex-col h-full z-20 shadow-2xl relative">
+        <header class="h-16 px-6 border-b border-[#151515] flex items-center justify-between bg-[#050505]/80 backdrop-blur sticky top-0 z-30">
             <div class="flex items-center gap-2 font-bold tracking-tight text-lg">
                 <div id="status-dot" class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_red]"></div>
-                Nexus<span class="text-zinc-500">Edit</span>
+                Nexus<span class="text-zinc-500">GodMode</span>
             </div>
-            <button id="btn-save" class="bg-white text-black px-6 py-2 rounded-lg text-xs font-bold hover:bg-zinc-200 transition shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                PUBLISH
+            <button id="btn-save" class="bg-white text-black px-6 py-2 rounded-lg text-xs font-bold hover:scale-105 transition shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                PUBLISH LIVE
             </button>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-6 pb-32">
-            <div class="space-y-3">
-                <div class="flex justify-between items-end">
-                    <label class="text-[10px] font-mono text-zinc-500 uppercase">Handle (Required)</label>
-                </div>
-                <div class="relative">
-                    <span class="absolute left-3 top-3 text-zinc-500">@</span>
-                    <input id="in-username" type="text" class="input-dark pl-7 !bg-black !border-zinc-800 focus:!border-white" placeholder="username">
-                </div>
-            </div>
+        <div class="flex overflow-x-auto no-scrollbar border-b border-[#151515] bg-[#080808]">
+            <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-id')">IDENTITY</button>
+            <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-look')">VISUALS</button>
+            <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-fx')">EFFECTS</button>
+            <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-media')">MEDIA</button>
+        </div>
 
-            <hr class="border-border">
-
-            <div class="grid grid-cols-2 gap-3">
-                <input id="in-name" type="text" class="input-dark" placeholder="Display Name">
-                <input id="in-role" type="text" class="input-dark" placeholder="Role / Tagline">
-            </div>
-            <textarea id="in-bio" rows="3" class="input-dark resize-none" placeholder="Bio..."></textarea>
+        <div class="flex-1 overflow-y-auto p-6 space-y-10 pb-40">
             
-            <div class="space-y-2">
-                <input id="in-gh" class="input-dark" placeholder="GitHub Username">
-                <input id="in-tw" class="input-dark" placeholder="Twitter Handle">
-                <input id="in-web" class="input-dark" placeholder="Website URL">
+            <div id="sec-id" class="space-y-4">
+                <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">01 // CORE DATA</div>
+                
+                <div class="bg-[#0A0A0A] p-4 rounded-xl border border-zinc-900">
+                    <label class="text-[10px] text-zinc-500 font-mono block mb-2">UNIQUE HANDLE (URL)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-zinc-600">@</span>
+                        <input id="in-username" type="text" class="input-dark pl-8" placeholder="username">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <input id="in-name" type="text" class="input-dark" placeholder="Display Name" oninput="render()">
+                    <input id="in-role" type="text" class="input-dark" placeholder="Role / Tagline" oninput="render()">
+                </div>
+                <textarea id="in-bio" rows="3" class="input-dark resize-none" placeholder="Enter your bio..." oninput="render()"></textarea>
+                
+                <div class="space-y-2">
+                    <input id="in-gh" class="input-dark" placeholder="GitHub Username" oninput="render()">
+                    <input id="in-tw" class="input-dark" placeholder="Twitter Handle" oninput="render()">
+                    <input id="in-web" class="input-dark" placeholder="Website URL" oninput="render()">
+                </div>
             </div>
 
-            <hr class="border-border">
-            
-            <div class="space-y-2">
-                 <label class="text-[10px] font-mono text-zinc-500 uppercase">Visuals</label>
-                 <input id="in-bg" class="input-dark" placeholder="Background Image URL">
-                 <div class="grid grid-cols-6 gap-2" id="color-grid"></div>
+            <hr class="border-[#151515]">
+
+            <div id="sec-look" class="space-y-4">
+                <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">02 // APPEARANCE</div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] text-zinc-500">ACCENT COLOR</label>
+                    <div class="flex gap-2 flex-wrap" id="color-grid"></div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] text-zinc-500">CURSOR STYLE</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="input-dark hover:bg-zinc-800 text-center" onclick="setCursor('default')">Default</button>
+                        <button class="input-dark hover:bg-zinc-800 text-center" onclick="setCursor('crosshair')">Crosshair</button>
+                        <button class="input-dark hover:bg-zinc-800 text-center" onclick="setCursor('pointer')">Pointer</button>
+                    </div>
+                </div>
+                
+                <div class="relative group cursor-pointer">
+                    <input type="file" class="absolute inset-0 opacity-0 z-10 cursor-pointer" onchange="handleFile(this, 'avatar')">
+                    <div class="input-dark text-center text-zinc-500 group-hover:text-white border-dashed">
+                        <i data-lucide="upload" class="w-4 h-4 inline mr-2"></i> Upload Avatar
+                    </div>
+                </div>
             </div>
+
+            <hr class="border-[#151515]">
+
+            <div id="sec-fx" class="space-y-4">
+                <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">03 // FX ENGINE</div>
+                
+                <div class="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg border border-zinc-900">
+                    <span class="text-xs text-zinc-400">CRT Scanlines</span>
+                    <input type="checkbox" id="chk-scan" class="accent-white" onchange="toggleFx('scanlines')">
+                </div>
+                <div class="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg border border-zinc-900">
+                    <span class="text-xs text-zinc-400">Film Noise</span>
+                    <input type="checkbox" id="chk-noise" class="accent-white" onchange="toggleFx('noise')">
+                </div>
+                <div class="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg border border-zinc-900">
+                    <span class="text-xs text-zinc-400">Dark Vignette</span>
+                    <input type="checkbox" id="chk-vignette" class="accent-white" onchange="toggleFx('vignette')">
+                </div>
+            </div>
+
+            <hr class="border-[#151515]">
+
+            <div id="sec-media" class="space-y-4">
+                <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">04 // MEDIA & BACKGROUND</div>
+                
+                <input id="in-bg-url" class="input-dark" placeholder="Background Image/GIF URL" oninput="setBg(this.value, 'img')">
+                <p class="text-[10px] text-zinc-600">Paste a direct link to a GIF or Image.</p>
+                
+                <input id="in-audio-url" class="input-dark" placeholder="MP3 Audio URL" oninput="setAudio(this.value)">
+                <p class="text-[10px] text-zinc-600">Music will play automatically on click.</p>
+            </div>
+
         </div>
     </aside>
 
     <main class="flex-1 bg-black hidden md:flex items-center justify-center relative overflow-hidden">
-        <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-        <div class="text-zinc-600 font-mono text-xs">PREVIEW MODE // WAITING FOR INPUT</div>
+        <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
+        <div class="text-zinc-700 font-mono text-xs">LIVE PREVIEW TERMINAL</div>
     </main>
 
     <script>
-        // --- 1. CONFIGURATION ---
+        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyCAGwej9kwnaf9XyqreS2kM9_NLpEa6dOM",
             authDomain: "nexusbio.firebaseapp.com",
@@ -110,7 +250,15 @@
         };
 
         let db;
-        let state = { color: '#ffffff' };
+        let state = {
+            color: '#ffffff',
+            cursor: 'default',
+            fx: { scanlines: false, noise: false, vignette: false },
+            bgUrl: '',
+            bgType: 'img',
+            audioUrl: '',
+            avatar: null
+        };
 
         window.onload = () => {
             try {
@@ -118,13 +266,14 @@
                 db = firebase.firestore();
                 document.getElementById('status-dot').classList.replace('bg-red-500', 'bg-green-500');
                 document.getElementById('status-dot').classList.add('shadow-[0_0_10px_#00ff00]');
-                initColors();
-            } catch(e) {
-                console.error(e);
-                alert("FIREBASE INIT FAILED: " + e.message);
-            }
+            } catch(e) { console.error(e); }
 
-            // Router
+            initColors();
+            checkRoute();
+        };
+
+        // --- ROUTER ---
+        async function checkRoute() {
             let path = window.location.pathname.substring(1);
             const query = new URLSearchParams(window.location.search).get('u');
             const user = path || query;
@@ -133,101 +282,84 @@
                 document.getElementById('editor-sidebar').classList.add('hidden');
                 document.querySelector('main').classList.add('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
-                loadProfile(user);
+                await loadProfile(user);
+            } else {
+                lucide.createIcons();
+                render();
             }
-        };
-
-        // --- SAVE FUNCTION (WITH ERROR DETECTOR) ---
-        document.getElementById('btn-save').addEventListener('click', async () => {
-            const username = document.getElementById('in-username').value.trim().toLowerCase();
-            
-            // Check 1: Empty Username
-            if(!username) {
-                alert("⚠️ PLEASE ENTER A USERNAME");
-                return;
-            }
-
-            // Check 2: Database Connection
-            if(!db) {
-                alert("⚠️ DATABASE NOT CONNECTED. Check your internet.");
-                return;
-            }
-
-            const btn = document.getElementById('btn-save');
-            btn.innerText = "SAVING...";
-
-            try {
-                // Attempt Write
-                await db.collection("users").doc(username).set({
-                    name: document.getElementById('in-name').value,
-                    role: document.getElementById('in-role').value,
-                    bio: document.getElementById('in-bio').value,
-                    bgUrl: document.getElementById('in-bg').value,
-                    links: {
-                        gh: document.getElementById('in-gh').value,
-                        tw: document.getElementById('in-tw').value,
-                        web: document.getElementById('in-web').value
-                    },
-                    theme: state.color,
-                    timestamp: new Date()
-                });
-
-                // SUCCESS
-                btn.innerText = "PUBLISHED!";
-                const link = `${window.location.origin}/?u=${username}`;
-                prompt("✅ SUCCESS! Your Profile is Live:", link);
-
-            } catch(e) {
-                // FAILURE - DIAGNOSIS
-                console.error(e);
-                btn.innerText = "FAILED";
-
-                if (e.code === 'permission-denied') {
-                    alert("❌ ERROR: PERMISSION DENIED\n\nGoogle has locked your database.\n\nYOU MUST GO TO FIREBASE CONSOLE -> FIRESTORE -> RULES AND CHANGE 'FALSE' TO 'TRUE'.");
-                } else if (e.code === 'unavailable') {
-                    alert("❌ ERROR: NETWORK\n\nYou are offline or your firewall is blocking Firebase.");
-                } else {
-                    alert("❌ ERROR: " + e.message);
-                }
-            }
-        });
-
-        // --- UTILS ---
-        function initColors() {
-            const colors = ['#ffffff', '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
-            const grid = document.getElementById('color-grid');
-            colors.forEach(c => {
-                const btn = document.createElement('div');
-                btn.className = 'w-6 h-6 rounded-full cursor-pointer border border-transparent hover:scale-125 transition';
-                btn.style.backgroundColor = c;
-                btn.onclick = () => state.color = c;
-                grid.appendChild(btn);
-            });
         }
 
+        // --- LOAD PROFILE (SMART LOADING) ---
         async function loadProfile(user) {
             try {
-                const doc = await db.collection("users").doc(user).get();
+                // 1. Create a 2-second minimum timer
+                const timerPromise = new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // 2. Fetch Data
+                const dataPromise = db.collection("users").doc(user).get();
+
+                // 3. Wait for BOTH (Animation + Data)
+                const [_, doc] = await Promise.all([timerPromise, dataPromise]);
+
+                // 4. Reveal Content
+                document.getElementById('view-loader').classList.add('hidden');
+
                 if (doc.exists) {
                     const data = doc.data();
+                    const card = document.getElementById('view-card');
+                    card.classList.remove('hidden');
+
+                    // Content
                     document.getElementById('v-name').innerText = data.name;
                     document.getElementById('v-role').innerText = data.role;
                     document.getElementById('v-bio').innerText = data.bio;
-                    document.getElementById('v-avatar').src = `https://ui-avatars.com/api/?name=${data.name}&background=111&color=fff`;
                     
-                    if(data.bgUrl) document.getElementById('view-bg').style.backgroundImage = `url(${data.bgUrl})`;
+                    // Avatar
+                    const av = data.avatar || `https://ui-avatars.com/api/?name=${data.name}&background=000&color=fff`;
+                    document.getElementById('v-avatar').src = av;
                     
+                    // Styling
+                    document.body.style.cursor = data.cursor || 'default';
                     document.getElementById('v-name').style.color = data.theme;
                     document.getElementById('v-role').style.color = data.theme;
                     document.getElementById('v-role').style.borderColor = data.theme + '40';
+                    document.getElementById('v-avatar').style.borderColor = data.theme;
 
+                    // Background
+                    if (data.bgUrl) {
+                        const bgDiv = document.getElementById('view-bg-media');
+                        bgDiv.style.backgroundImage = `url(${data.bgUrl})`;
+                        bgDiv.classList.remove('opacity-0');
+                    }
+
+                    // Effects
+                    if(data.fx?.scanlines) document.getElementById('fx-scanlines').classList.remove('hidden');
+                    if(data.fx?.noise) document.getElementById('fx-noise').classList.remove('hidden');
+                    if(data.fx?.vignette) document.getElementById('fx-vignette').classList.remove('hidden');
+
+                    // Audio
+                    if (data.audioUrl) {
+                        const audio = document.getElementById('bg-audio');
+                        audio.src = data.audioUrl;
+                        document.getElementById('audio-toggle').classList.remove('hidden');
+                        document.body.addEventListener('click', () => {
+                            if(audio.paused) {
+                                audio.play();
+                                document.getElementById('audio-toggle').innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+                                lucide.createIcons();
+                            }
+                        }, { once: true });
+                    }
+
+                    // Links
                     const lContainer = document.getElementById('v-links');
                     if(data.links.gh) lContainer.innerHTML += createLink('github', 'GitHub', data.links.gh);
                     if(data.links.tw) lContainer.innerHTML += createLink('twitter', 'Twitter', data.links.tw);
                     if(data.links.web) lContainer.innerHTML += createLink('globe', 'Website', data.links.web);
                     lucide.createIcons();
+
                 } else {
-                    alert("User not found");
+                    alert("User not found!");
                     window.location.href = '/';
                 }
             } catch(e) { console.error(e); }
@@ -240,7 +372,82 @@
                     <i data-lucide="${icon}" class="w-4 h-4 text-zinc-400 group-hover:text-white transition"></i>
                     <span class="font-bold text-zinc-300 group-hover:text-white">${label}</span>
                 </div>
+                <i data-lucide="arrow-up-right" class="w-3 h-3 text-zinc-500 group-hover:text-white"></i>
             </a>`;
+        }
+
+        // --- EDITOR ACTIONS ---
+        function initColors() {
+            const colors = ['#ffffff', '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
+            const grid = document.getElementById('color-grid');
+            colors.forEach(c => {
+                const btn = document.createElement('div');
+                btn.className = 'w-6 h-6 rounded-full cursor-pointer border border-transparent hover:scale-125 transition';
+                btn.style.backgroundColor = c;
+                btn.onclick = () => state.color = c;
+                grid.appendChild(btn);
+            });
+        }
+
+        function setCursor(type) { state.cursor = type; }
+        function toggleFx(fx) { state.fx[fx] = !state.fx[fx]; }
+        function setBg(url, type) { state.bgUrl = url; state.bgType = type; }
+        function setAudio(url) { state.audioUrl = url; }
+        function handleFile(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => state.avatar = e.target.result;
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        function scrollToSec(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
+        
+        function render() {
+             // Basic preview updates if needed
+        }
+
+        // --- SAVE ---
+        document.getElementById('btn-save').addEventListener('click', async () => {
+            const username = document.getElementById('in-username').value.trim().toLowerCase();
+            if(!username) return alert("HANDLE REQUIRED");
+            
+            const btn = document.getElementById('btn-save');
+            btn.innerText = "UPLOADING...";
+            
+            try {
+                await db.collection("users").doc(username).set({
+                    ...state,
+                    name: document.getElementById('in-name').value,
+                    role: document.getElementById('in-role').value,
+                    bio: document.getElementById('in-bio').value,
+                    links: {
+                        gh: document.getElementById('in-gh').value,
+                        tw: document.getElementById('in-tw').value,
+                        web: document.getElementById('in-web').value
+                    },
+                    theme: state.color,
+                    timestamp: new Date()
+                });
+                btn.innerText = "LIVE!";
+                prompt("URL:", `${window.location.origin}/${username}`);
+            } catch(e) {
+                console.error(e);
+                btn.innerText = "FAILED";
+                alert("Check Console / Rules");
+            }
+        });
+
+        // Audio Toggle
+        function toggleAudio() {
+            const audio = document.getElementById('bg-audio');
+            if(audio.paused) {
+                audio.play();
+                document.getElementById('audio-toggle').innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
+            } else {
+                audio.pause();
+                document.getElementById('audio-toggle').innerHTML = '<i data-lucide="volume-x" class="w-4 h-4"></i>';
+            }
+            lucide.createIcons();
         }
     </script>
 </body>
