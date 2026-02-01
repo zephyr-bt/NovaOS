@@ -232,7 +232,6 @@
         };
 
         let db;
-        // Extended State
         let state = {
             color: '#ffffff',
             font: 'font-sans',
@@ -273,10 +272,17 @@
         // --- LOAD PROFILE ---
         async function loadProfile(user) {
             try {
-                // 2-Second Artificial Boot Delay
-                await new Promise(r => setTimeout(r, 2000));
+                // 1. TIMEOUT BREAKER (Force timeout after 5s if stuck)
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("Timeout")), 5000)
+                );
                 
-                const doc = await db.collection("users").doc(user).get();
+                // 2. Data Fetch
+                const dataPromise = db.collection("users").doc(user).get();
+                
+                // 3. Race against the clock
+                const doc = await Promise.race([dataPromise, timeoutPromise]);
+                
                 document.getElementById('view-loader').classList.add('hidden');
 
                 if (doc.exists) {
@@ -339,7 +345,11 @@
                     alert("User not found!");
                     window.location.href = '/';
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error(e);
+                // If it timed out
+                document.getElementById('view-loader').innerHTML = `<div class='text-red-500'>CONNECTION FAILED</div>`;
+            }
         }
 
         function createLink(icon, label, url) {
@@ -353,7 +363,6 @@
             </a>`;
         }
 
-        // --- EDITOR ACTIONS ---
         function initColors() {
             const colors = ['#ffffff', '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
             const grid = document.getElementById('color-grid');
@@ -385,40 +394,55 @@
             const originalText = btn.innerText;
             btn.innerText = "SAVING...";
 
-            // 1. Wait 2 Seconds (Simulated Processing)
-            await new Promise(r => setTimeout(r, 2000));
+            // 1. FORCE TIMEOUT: Stop after 5 seconds if connection is bad
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000));
+            
+            // 2. REAL SAVE OPERATION
+            const savePromise = db.collection("users").doc(username).set({
+                ...state,
+                name: document.getElementById('in-name').value,
+                role: document.getElementById('in-role').value,
+                bio: document.getElementById('in-bio').value,
+                bgUrl: document.getElementById('in-bg-url').value,
+                links: {
+                    gh: document.getElementById('in-gh').value,
+                    tw: document.getElementById('in-tw').value,
+                    ig: document.getElementById('in-ig').value,
+                    dc: document.getElementById('in-dc').value,
+                    yt: document.getElementById('in-yt').value,
+                    web: document.getElementById('in-web').value
+                },
+                theme: state.color,
+                timestamp: new Date()
+            });
+
+            // 3. ARTIFICIAL DELAY (Exactly 2 seconds)
+            const delayPromise = new Promise(r => setTimeout(r, 2000));
 
             try {
-                // 2. Save Data
-                await db.collection("users").doc(username).set({
-                    ...state,
-                    name: document.getElementById('in-name').value,
-                    role: document.getElementById('in-role').value,
-                    bio: document.getElementById('in-bio').value,
-                    bgUrl: document.getElementById('in-bg-url').value,
-                    links: {
-                        gh: document.getElementById('in-gh').value,
-                        tw: document.getElementById('in-tw').value,
-                        ig: document.getElementById('in-ig').value,
-                        dc: document.getElementById('in-dc').value,
-                        yt: document.getElementById('in-yt').value,
-                        web: document.getElementById('in-web').value
-                    },
-                    theme: state.color,
-                    timestamp: new Date()
-                });
+                // Wait for Save AND Delay (but fail if Timeout wins)
+                await Promise.race([
+                    Promise.all([savePromise, delayPromise]),
+                    timeoutPromise
+                ]);
 
-                // 3. SUCCESS ALERT
+                // SUCCESS
                 btn.innerText = "SAVED";
                 alert("Identity Saved !");
-                
-                // Reset button after alert
                 btn.innerText = originalText;
+                
+                // Prompt Link
+                const link = `${window.location.origin}/?u=${username}`;
+                prompt("Copy your link:", link);
 
             } catch(e) {
                 console.error(e);
                 btn.innerText = "FAILED";
-                alert("Error: Check Console");
+                if(e.message === "Timeout") {
+                    alert("Error: Network Connection is too slow.");
+                } else {
+                    alert("Error: " + e.message);
+                }
             }
         });
     </script>
