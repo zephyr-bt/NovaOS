@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus | God Mode</title>
+    <title>Nexus | Ultra Premium</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;700&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;700&family=Space+Grotesk:wght@500;700&family=Syncopate:wght@700&display=swap" rel="stylesheet">
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -21,109 +21,99 @@
                         mono: ['JetBrains Mono', 'monospace'],
                         outfit: ['Outfit', 'sans-serif'],
                         space: ['Space Grotesk', 'sans-serif'],
+                        cyber: ['Syncopate', 'sans-serif'],
                     },
-                    colors: { page: '#050505', panel: '#0a0a0a', border: '#1a1a1a' },
+                    colors: { page: '#030303', panel: '#0a0a0a', border: '#1a1a1a' },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
-                        'scan': 'scan 4s linear infinite',
-                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-glow': 'pulseGlow 2s infinite',
                     },
                     keyframes: {
                         float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
-                        scan: { '0%': { transform: 'translateY(-100%)' }, '100%': { transform: 'translateY(100%)' } }
+                        pulseGlow: { '0%, 100%': { opacity: 0.6 }, '50%': { opacity: 1 } }
                     }
                 }
             }
         }
     </script>
     <style>
-        /* SMOOTH SCROLL & SELECTION */
         body { background-color: #030303; color: #fff; height: 100dvh; overflow: hidden; font-family: 'Inter', sans-serif; }
-        ::selection { background: rgba(255, 255, 255, 0.2); }
         
-        /* SCROLLBAR HIDING */
+        /* SCROLLBAR */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* GLASSMORPHISM */
-        .glass {
-            background: rgba(10, 10, 10, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
 
         /* INPUTS */
         .input-dark {
             background: #080808; border: 1px solid #222; color: #eee;
-            padding: 12px; border-radius: 10px; width: 100%; outline: none;
+            padding: 12px; border-radius: 12px; width: 100%; outline: none;
+            transition: 0.3s; font-size: 13px;
+        }
+        .input-dark:focus { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.1); }
+
+        /* PREMIUM GLASS CARD */
+        .glass-premium {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(var(--blur-amt));
+            -webkit-backdrop-filter: blur(var(--blur-amt));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* PREMIUM LINK HOVER */
+        .link-item {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+            border: 1px solid rgba(255,255,255,0.05);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 13px;
         }
-        .input-dark:focus { border-color: #555; box-shadow: 0 0 0 2px rgba(255,255,255,0.05); }
-
-        /* CURSORS */
-        .cursor-crosshair { cursor: crosshair; }
-        .cursor-pointer { cursor: pointer; }
-        .cursor-default { cursor: default; }
-
-        /* EFFECTS */
-        .scanlines {
-            position: fixed; inset: 0; pointer-events: none; z-index: 10;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px;
-        }
-        .vignette {
-            position: fixed; inset: 0; pointer-events: none; z-index: 10;
-            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%);
-        }
-        .noise {
-            position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0.05;
-            background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+        .link-item:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px var(--theme-color);
         }
     </style>
 </head>
-<body class="flex flex-col md:flex-row text-sm">
+<body class="flex flex-col md:flex-row text-sm" style="--blur-amt: 20px; --theme-color: #fff;">
 
     <div id="view-app" class="hidden fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center overflow-hidden">
         
         <div id="view-bg-media" class="absolute inset-0 z-0 bg-cover bg-center transition-opacity duration-1000 opacity-0"></div>
-        <video id="view-bg-video" class="absolute inset-0 z-0 w-full h-full object-cover hidden" loop muted autoplay playsinline></video>
         <div id="view-overlay" class="absolute inset-0 bg-black/60 z-0"></div>
         
-        <div id="fx-scanlines" class="hidden scanlines"></div>
-        <div id="fx-noise" class="hidden noise"></div>
-        <div id="fx-vignette" class="hidden vignette"></div>
-        
+        <div id="fx-scanlines" class="hidden fixed inset-0 z-10 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]"></div>
+        <div id="fx-noise" class="hidden fixed inset-0 z-10 pointer-events-none opacity-[0.05] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+
         <div id="view-loader" class="z-50 relative flex flex-col items-center">
             <div class="w-16 h-16 border-2 border-zinc-800 border-t-white rounded-full animate-spin"></div>
-            <div class="mt-4 font-mono text-xs tracking-[0.3em] text-zinc-500 animate-pulse-fast">SYSTEM BOOT</div>
+            <div class="mt-4 font-mono text-xs tracking-[0.3em] text-zinc-500 animate-pulse">AUTHENTICATING...</div>
         </div>
 
         <audio id="bg-audio" loop></audio>
-        
-        <button id="audio-toggle" onclick="toggleAudio()" class="hidden fixed top-6 right-6 z-50 p-3 bg-black/50 backdrop-blur rounded-full text-white hover:bg-white hover:text-black transition animate-in fade-in duration-1000">
+        <button id="audio-toggle" onclick="toggleAudio()" class="hidden fixed top-6 right-6 z-50 p-3 bg-black/50 backdrop-blur rounded-full text-white hover:bg-white hover:text-black transition">
             <i data-lucide="volume-x" class="w-4 h-4"></i>
         </button>
 
-        <div id="view-card" class="hidden relative z-20 glass w-full max-w-[420px] rounded-[30px] p-8 md:p-10 text-center animate-in zoom-in duration-500 mx-4 border border-white/10">
+        <div id="view-card" class="hidden relative z-20 glass-premium w-full max-w-[420px] p-10 text-center animate-in zoom-in duration-500 mx-4" style="border-radius: 32px;">
             
             <div class="relative inline-block mb-6 group">
-                <div id="v-avatar-glow" class="absolute -inset-3 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
-                <img id="v-avatar" src="" class="relative w-28 h-28 rounded-full border-2 border-white/20 object-cover shadow-2xl">
+                <div id="v-avatar-glow" class="absolute -inset-4 bg-white/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+                <img id="v-avatar" src="" class="relative w-28 h-28 rounded-full border-2 border-white/20 object-cover shadow-2xl bg-black">
+                <div id="v-badge" class="absolute bottom-0 right-0 bg-blue-500 text-white p-1.5 rounded-full shadow-lg hidden">
+                    <i data-lucide="badge-check" class="w-4 h-4"></i>
+                </div>
             </div>
             
-            <h1 id="v-name" class="text-3xl font-bold tracking-tight text-white mb-2 font-outfit drop-shadow-lg">...</h1>
-            <div id="v-role" class="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[11px] font-mono tracking-wider uppercase text-zinc-300 mb-6 backdrop-blur-md">...</div>
+            <h1 id="v-name" class="text-3xl font-bold text-white mb-2 drop-shadow-xl">...</h1>
+            <div id="v-role" class="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono tracking-widest uppercase text-zinc-300 mb-6 backdrop-blur-md">...</div>
             
-            <p id="v-bio" class="text-zinc-300 text-sm leading-relaxed mb-8 max-w-[90%] mx-auto font-medium drop-shadow">...</p>
+            <p id="v-bio" class="text-zinc-300 text-sm leading-relaxed mb-8 max-w-[90%] mx-auto font-medium drop-shadow-md">...</p>
 
             <div id="v-links" class="space-y-3">
                 </div>
             
-            <div class="mt-10 opacity-30 hover:opacity-100 transition cursor-default">
-                <span class="font-mono text-[10px] tracking-[0.4em]">NEXUS</span>
+            <div class="mt-12 opacity-30 hover:opacity-100 transition cursor-default">
+                <span class="font-mono text-[9px] tracking-[0.5em]">NEXUS</span>
             </div>
         </div>
     </div>
@@ -132,102 +122,94 @@
         <header class="h-16 px-6 border-b border-[#151515] flex items-center justify-between bg-[#050505]/80 backdrop-blur sticky top-0 z-30">
             <div class="flex items-center gap-2 font-bold tracking-tight text-lg">
                 <div id="status-dot" class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_red]"></div>
-                Nexus<span class="text-zinc-500">GodMode</span>
+                Nexus<span class="text-zinc-500">Ultra</span>
             </div>
-            <button id="btn-save" class="bg-white text-black px-6 py-2 rounded-lg text-xs font-bold hover:scale-105 transition shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+            <button id="btn-save" class="bg-white text-black px-6 py-2 rounded-xl text-xs font-bold hover:scale-105 transition shadow-[0_0_20px_rgba(255,255,255,0.2)]">
                 PUBLISH LIVE
             </button>
         </header>
 
         <div class="flex overflow-x-auto no-scrollbar border-b border-[#151515] bg-[#080808]">
             <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-id')">IDENTITY</button>
-            <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-look')">VISUALS</button>
-            <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-fx')">EFFECTS</button>
-            <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-media')">MEDIA</button>
+            <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-style')">STYLE</button>
+            <button class="px-6 py-4 text-xs font-bold text-zinc-400 hover:text-white border-b-2 border-transparent hover:border-white transition shrink-0" onclick="scrollToSec('sec-links')">LINKS</button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 space-y-10 pb-40">
             
             <div id="sec-id" class="space-y-4">
                 <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">01 // CORE DATA</div>
-                
-                <div class="bg-[#0A0A0A] p-4 rounded-xl border border-zinc-900">
-                    <label class="text-[10px] text-zinc-500 font-mono block mb-2">UNIQUE HANDLE (URL)</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-3 text-zinc-600">@</span>
-                        <input id="in-username" type="text" class="input-dark pl-8" placeholder="username">
-                    </div>
+                <div class="relative">
+                    <span class="absolute left-3 top-3 text-zinc-600">@</span>
+                    <input id="in-username" type="text" class="input-dark pl-8 bg-zinc-900 border-zinc-800" placeholder="username (required)">
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
-                    <input id="in-name" type="text" class="input-dark" placeholder="Display Name" oninput="render()">
-                    <input id="in-role" type="text" class="input-dark" placeholder="Role / Tagline" oninput="render()">
+                    <input id="in-name" type="text" class="input-dark" placeholder="Display Name">
+                    <input id="in-role" type="text" class="input-dark" placeholder="Role / Tagline">
                 </div>
-                <textarea id="in-bio" rows="3" class="input-dark resize-none" placeholder="Enter your bio..." oninput="render()"></textarea>
+                <textarea id="in-bio" rows="3" class="input-dark resize-none" placeholder="Enter your bio..."></textarea>
                 
-                <div class="space-y-2">
-                    <input id="in-gh" class="input-dark" placeholder="GitHub Username" oninput="render()">
-                    <input id="in-tw" class="input-dark" placeholder="Twitter Handle" oninput="render()">
-                    <input id="in-web" class="input-dark" placeholder="Website URL" oninput="render()">
+                 <div class="relative group cursor-pointer">
+                    <input type="file" class="absolute inset-0 opacity-0 z-10 cursor-pointer" onchange="handleFile(this, 'avatar')">
+                    <div class="input-dark text-center text-zinc-500 group-hover:text-white border-dashed">
+                        <i data-lucide="upload" class="w-4 h-4 inline mr-2"></i> Upload Custom Avatar
+                    </div>
                 </div>
             </div>
 
             <hr class="border-[#151515]">
 
-            <div id="sec-look" class="space-y-4">
-                <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">02 // APPEARANCE</div>
+            <div id="sec-style" class="space-y-6">
+                <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">02 // VISUAL ENGINE</div>
                 
-                <div class="space-y-2">
-                    <label class="text-[10px] text-zinc-500">ACCENT COLOR</label>
+                <div>
+                    <label class="text-[10px] text-zinc-500 mb-2 block">THEME COLOR</label>
                     <div class="flex gap-2 flex-wrap" id="color-grid"></div>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="text-[10px] text-zinc-500">CURSOR STYLE</label>
+                <div>
+                    <label class="text-[10px] text-zinc-500 mb-2 block">TYPOGRAPHY</label>
+                    <select id="sel-font" class="input-dark" onchange="state.font = this.value">
+                        <option value="font-sans">Inter (Clean)</option>
+                        <option value="font-outfit">Outfit (Modern)</option>
+                        <option value="font-space">Space Grotesk (Tech)</option>
+                        <option value="font-cyber">Syncopate (Cyber)</option>
+                        <option value="font-mono">JetBrains (Code)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-zinc-500 mb-2 block">CARD SHAPE</label>
                     <div class="grid grid-cols-3 gap-2">
-                        <button class="input-dark hover:bg-zinc-800 text-center" onclick="setCursor('default')">Default</button>
-                        <button class="input-dark hover:bg-zinc-800 text-center" onclick="setCursor('crosshair')">Crosshair</button>
-                        <button class="input-dark hover:bg-zinc-800 text-center" onclick="setCursor('pointer')">Pointer</button>
+                        <button class="input-dark text-center" onclick="state.radius = '0px'">Box</button>
+                        <button class="input-dark text-center" onclick="state.radius = '16px'">Soft</button>
+                        <button class="input-dark text-center" onclick="state.radius = '32px'">Round</button>
                     </div>
                 </div>
-                
-                <div class="relative group cursor-pointer">
-                    <input type="file" class="absolute inset-0 opacity-0 z-10 cursor-pointer" onchange="handleFile(this, 'avatar')">
-                    <div class="input-dark text-center text-zinc-500 group-hover:text-white border-dashed">
-                        <i data-lucide="upload" class="w-4 h-4 inline mr-2"></i> Upload Avatar
+
+                 <div>
+                    <label class="text-[10px] text-zinc-500 mb-2 block">SPECIAL EFFECTS</label>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center bg-zinc-900 p-3 rounded-lg"><span class="text-xs">CRT Scanlines</span> <input type="checkbox" onchange="state.fx.scan = this.checked"></div>
+                        <div class="flex justify-between items-center bg-zinc-900 p-3 rounded-lg"><span class="text-xs">Film Noise</span> <input type="checkbox" onchange="state.fx.noise = this.checked"></div>
+                        <div class="flex justify-between items-center bg-zinc-900 p-3 rounded-lg"><span class="text-xs">Verify Badge</span> <input type="checkbox" onchange="state.verified = this.checked"></div>
                     </div>
-                </div>
+                 </div>
+
+                 <input id="in-bg-url" class="input-dark" placeholder="Background Image URL">
             </div>
 
             <hr class="border-[#151515]">
 
-            <div id="sec-fx" class="space-y-4">
-                <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">03 // FX ENGINE</div>
+            <div id="sec-links" class="space-y-4">
+                <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">03 // SOCIAL MATRIX</div>
                 
-                <div class="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg border border-zinc-900">
-                    <span class="text-xs text-zinc-400">CRT Scanlines</span>
-                    <input type="checkbox" id="chk-scan" class="accent-white" onchange="toggleFx('scanlines')">
-                </div>
-                <div class="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg border border-zinc-900">
-                    <span class="text-xs text-zinc-400">Film Noise</span>
-                    <input type="checkbox" id="chk-noise" class="accent-white" onchange="toggleFx('noise')">
-                </div>
-                <div class="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg border border-zinc-900">
-                    <span class="text-xs text-zinc-400">Dark Vignette</span>
-                    <input type="checkbox" id="chk-vignette" class="accent-white" onchange="toggleFx('vignette')">
-                </div>
-            </div>
-
-            <hr class="border-[#151515]">
-
-            <div id="sec-media" class="space-y-4">
-                <div class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest mb-2">04 // MEDIA & BACKGROUND</div>
-                
-                <input id="in-bg-url" class="input-dark" placeholder="Background Image/GIF URL" oninput="setBg(this.value, 'img')">
-                <p class="text-[10px] text-zinc-600">Paste a direct link to a GIF or Image.</p>
-                
-                <input id="in-audio-url" class="input-dark" placeholder="MP3 Audio URL" oninput="setAudio(this.value)">
-                <p class="text-[10px] text-zinc-600">Music will play automatically on click.</p>
+                <input id="in-gh" class="input-dark" placeholder="GitHub Username">
+                <input id="in-tw" class="input-dark" placeholder="Twitter Handle">
+                <input id="in-ig" class="input-dark" placeholder="Instagram Username">
+                <input id="in-dc" class="input-dark" placeholder="Discord Server Invite">
+                <input id="in-yt" class="input-dark" placeholder="YouTube Channel URL">
+                <input id="in-web" class="input-dark" placeholder="Website / Portfolio URL">
             </div>
 
         </div>
@@ -235,7 +217,7 @@
 
     <main class="flex-1 bg-black hidden md:flex items-center justify-center relative overflow-hidden">
         <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
-        <div class="text-zinc-700 font-mono text-xs">LIVE PREVIEW TERMINAL</div>
+        <div class="text-zinc-700 font-mono text-xs">LIVE PREVIEW TERMINAL // WAITING FOR INPUT</div>
     </main>
 
     <script>
@@ -250,13 +232,13 @@
         };
 
         let db;
+        // Extended State
         let state = {
             color: '#ffffff',
-            cursor: 'default',
-            fx: { scanlines: false, noise: false, vignette: false },
-            bgUrl: '',
-            bgType: 'img',
-            audioUrl: '',
+            font: 'font-sans',
+            radius: '32px',
+            fx: { scan: false, noise: false },
+            verified: false,
             avatar: null
         };
 
@@ -285,23 +267,16 @@
                 await loadProfile(user);
             } else {
                 lucide.createIcons();
-                render();
             }
         }
 
-        // --- LOAD PROFILE (SMART LOADING) ---
+        // --- LOAD PROFILE ---
         async function loadProfile(user) {
             try {
-                // 1. Create a 2-second minimum timer
-                const timerPromise = new Promise(resolve => setTimeout(resolve, 2000));
+                // 2-Second Artificial Boot Delay
+                await new Promise(r => setTimeout(r, 2000));
                 
-                // 2. Fetch Data
-                const dataPromise = db.collection("users").doc(user).get();
-
-                // 3. Wait for BOTH (Animation + Data)
-                const [_, doc] = await Promise.all([timerPromise, dataPromise]);
-
-                // 4. Reveal Content
+                const doc = await db.collection("users").doc(user).get();
                 document.getElementById('view-loader').classList.add('hidden');
 
                 if (doc.exists) {
@@ -309,53 +284,55 @@
                     const card = document.getElementById('view-card');
                     card.classList.remove('hidden');
 
-                    // Content
+                    // 1. Text
                     document.getElementById('v-name').innerText = data.name;
                     document.getElementById('v-role').innerText = data.role;
                     document.getElementById('v-bio').innerText = data.bio;
                     
-                    // Avatar
+                    // 2. Avatar & Badge
                     const av = data.avatar || `https://ui-avatars.com/api/?name=${data.name}&background=000&color=fff`;
                     document.getElementById('v-avatar').src = av;
+                    if(data.verified) document.getElementById('v-badge').classList.remove('hidden');
+
+                    // 3. Styling Engine
+                    document.body.style.setProperty('--theme-color', data.theme || '#fff');
+                    document.body.className = `flex flex-col md:flex-row text-sm ${data.font || 'font-sans'}`;
+                    card.style.borderRadius = data.radius || '32px';
                     
-                    // Styling
-                    document.body.style.cursor = data.cursor || 'default';
+                    // Theme Colors
                     document.getElementById('v-name').style.color = data.theme;
                     document.getElementById('v-role').style.color = data.theme;
                     document.getElementById('v-role').style.borderColor = data.theme + '40';
                     document.getElementById('v-avatar').style.borderColor = data.theme;
+                    document.getElementById('v-badge').style.backgroundColor = data.theme;
 
-                    // Background
+                    // 4. Background
                     if (data.bgUrl) {
                         const bgDiv = document.getElementById('view-bg-media');
                         bgDiv.style.backgroundImage = `url(${data.bgUrl})`;
                         bgDiv.classList.remove('opacity-0');
                     }
 
-                    // Effects
-                    if(data.fx?.scanlines) document.getElementById('fx-scanlines').classList.remove('hidden');
+                    // 5. FX
+                    if(data.fx?.scan) document.getElementById('fx-scanlines').classList.remove('hidden');
                     if(data.fx?.noise) document.getElementById('fx-noise').classList.remove('hidden');
-                    if(data.fx?.vignette) document.getElementById('fx-vignette').classList.remove('hidden');
 
-                    // Audio
-                    if (data.audioUrl) {
-                        const audio = document.getElementById('bg-audio');
-                        audio.src = data.audioUrl;
-                        document.getElementById('audio-toggle').classList.remove('hidden');
-                        document.body.addEventListener('click', () => {
-                            if(audio.paused) {
-                                audio.play();
-                                document.getElementById('audio-toggle').innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
-                                lucide.createIcons();
-                            }
-                        }, { once: true });
-                    }
-
-                    // Links
+                    // 6. Links (Premium)
                     const lContainer = document.getElementById('v-links');
-                    if(data.links.gh) lContainer.innerHTML += createLink('github', 'GitHub', data.links.gh);
-                    if(data.links.tw) lContainer.innerHTML += createLink('twitter', 'Twitter', data.links.tw);
-                    if(data.links.web) lContainer.innerHTML += createLink('globe', 'Website', data.links.web);
+                    const links = [
+                        { k: 'gh', i: 'github', l: 'GitHub' },
+                        { k: 'tw', i: 'twitter', l: 'Twitter' },
+                        { k: 'ig', i: 'instagram', l: 'Instagram' },
+                        { k: 'dc', i: 'message-circle', l: 'Discord' },
+                        { k: 'yt', i: 'youtube', l: 'YouTube' },
+                        { k: 'web', i: 'globe', l: 'Website' }
+                    ];
+
+                    links.forEach(link => {
+                        if(data.links && data.links[link.k]) {
+                            lContainer.innerHTML += createLink(link.i, link.l, data.links[link.k]);
+                        }
+                    });
                     lucide.createIcons();
 
                 } else {
@@ -367,12 +344,12 @@
 
         function createLink(icon, label, url) {
             const finalUrl = url.startsWith('http') ? url : `https://${url}`;
-            return `<a href="${finalUrl}" target="_blank" class="flex items-center justify-between p-4 bg-white/5 border border-white/5 hover:bg-white/10 hover:scale-[1.02] transition rounded-xl group">
-                <div class="flex items-center gap-3">
-                    <i data-lucide="${icon}" class="w-4 h-4 text-zinc-400 group-hover:text-white transition"></i>
-                    <span class="font-bold text-zinc-300 group-hover:text-white">${label}</span>
+            return `<a href="${finalUrl}" target="_blank" class="link-item flex items-center justify-between p-4 rounded-xl group relative overflow-hidden">
+                <div class="flex items-center gap-4 relative z-10">
+                    <i data-lucide="${icon}" class="w-5 h-5 text-white/70 group-hover:text-white transition"></i>
+                    <span class="font-bold text-white/80 group-hover:text-white tracking-wide transition">${label}</span>
                 </div>
-                <i data-lucide="arrow-up-right" class="w-3 h-3 text-zinc-500 group-hover:text-white"></i>
+                <i data-lucide="arrow-up-right" class="w-4 h-4 text-white/40 group-hover:text-white transition relative z-10"></i>
             </a>`;
         }
 
@@ -382,17 +359,13 @@
             const grid = document.getElementById('color-grid');
             colors.forEach(c => {
                 const btn = document.createElement('div');
-                btn.className = 'w-6 h-6 rounded-full cursor-pointer border border-transparent hover:scale-125 transition';
+                btn.className = 'w-6 h-6 rounded-full cursor-pointer border border-transparent hover:scale-125 transition ring-2 ring-transparent hover:ring-white';
                 btn.style.backgroundColor = c;
                 btn.onclick = () => state.color = c;
                 grid.appendChild(btn);
             });
         }
 
-        function setCursor(type) { state.cursor = type; }
-        function toggleFx(fx) { state.fx[fx] = !state.fx[fx]; }
-        function setBg(url, type) { state.bgUrl = url; state.bgType = type; }
-        function setAudio(url) { state.audioUrl = url; }
         function handleFile(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -401,54 +374,53 @@
             }
         }
         function scrollToSec(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
-        
-        function render() {
-             // Basic preview updates if needed
-        }
 
-        // --- SAVE ---
+        // --- SAVE FUNCTION ---
         document.getElementById('btn-save').addEventListener('click', async () => {
             const username = document.getElementById('in-username').value.trim().toLowerCase();
-            if(!username) return alert("HANDLE REQUIRED");
-            
+            if(!username) return alert("Please enter a username!");
+            if(!db) return alert("Database offline");
+
             const btn = document.getElementById('btn-save');
-            btn.innerText = "UPLOADING...";
-            
+            const originalText = btn.innerText;
+            btn.innerText = "SAVING...";
+
+            // 1. Wait 2 Seconds (Simulated Processing)
+            await new Promise(r => setTimeout(r, 2000));
+
             try {
+                // 2. Save Data
                 await db.collection("users").doc(username).set({
                     ...state,
                     name: document.getElementById('in-name').value,
                     role: document.getElementById('in-role').value,
                     bio: document.getElementById('in-bio').value,
+                    bgUrl: document.getElementById('in-bg-url').value,
                     links: {
                         gh: document.getElementById('in-gh').value,
                         tw: document.getElementById('in-tw').value,
+                        ig: document.getElementById('in-ig').value,
+                        dc: document.getElementById('in-dc').value,
+                        yt: document.getElementById('in-yt').value,
                         web: document.getElementById('in-web').value
                     },
                     theme: state.color,
                     timestamp: new Date()
                 });
-                btn.innerText = "LIVE!";
-                prompt("URL:", `${window.location.origin}/${username}`);
+
+                // 3. SUCCESS ALERT
+                btn.innerText = "SAVED";
+                alert("Identity Saved !");
+                
+                // Reset button after alert
+                btn.innerText = originalText;
+
             } catch(e) {
                 console.error(e);
                 btn.innerText = "FAILED";
-                alert("Check Console / Rules");
+                alert("Error: Check Console");
             }
         });
-
-        // Audio Toggle
-        function toggleAudio() {
-            const audio = document.getElementById('bg-audio');
-            if(audio.paused) {
-                audio.play();
-                document.getElementById('audio-toggle').innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i>';
-            } else {
-                audio.pause();
-                document.getElementById('audio-toggle').innerHTML = '<i data-lucide="volume-x" class="w-4 h-4"></i>';
-            }
-            lucide.createIcons();
-        }
     </script>
 </body>
 </html>
