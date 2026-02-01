@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nexus Cloud | Live Identity</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,11 +25,12 @@
     </script>
     <style>
         :root { --theme-color: #8b5cf6; }
+        /* Fix for mobile viewport height */
         body { background-color: #050505; color: #fff; height: 100dvh; overflow: hidden; }
         
         .nav-tab { padding: 8px 16px; font-size: 13px; color: #71717A; cursor: pointer; border-radius: 6px; }
         .nav-tab.active { background: #222; color: white; }
-        .input-field { background: #121212; border: 1px solid #333; color: white; padding: 10px; border-radius: 8px; width: 100%; outline: none; }
+        .input-field { background: #121212; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; width: 100%; outline: none; transition: 0.2s; }
         .input-field:focus { border-color: var(--theme-color); }
         .color-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
         .color-dot.active { border-color: white; transform: scale(1.1); }
@@ -37,8 +38,8 @@
         /* Toast Notification */
         #toast {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
-            background: #fff; color: #000; padding: 10px 20px; border-radius: 30px;
-            font-weight: bold; font-size: 12px; z-index: 9999; transition: 0.3s;
+            background: #fff; color: #000; padding: 12px 24px; border-radius: 30px;
+            font-weight: bold; font-size: 13px; z-index: 9999; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; items-center; gap: 8px;
         }
         #toast.show { transform: translateX(-50%) translateY(0); }
@@ -48,13 +49,13 @@
 
     <div id="toast"><div id="toast-icon"></div> <span id="toast-msg">Notification</span></div>
 
-    <aside class="w-full md:w-[420px] bg-panel border-r border-border flex flex-col z-20 shadow-2xl h-full">
-        <header class="h-16 flex items-center justify-between px-6 border-b border-border shrink-0">
+    <aside class="w-full md:w-[450px] bg-panel border-r border-border flex flex-col z-20 shadow-2xl h-full">
+        <header class="h-16 flex items-center justify-between px-6 border-b border-border shrink-0 bg-panel z-10">
             <div class="flex items-center gap-2 font-bold">
                 <div id="status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                 Nexus Cloud
             </div>
-            <button id="btn-save" class="bg-white text-black px-5 py-2 rounded-full text-xs font-bold hover:bg-gray-200 transition flex items-center gap-2">
+            <button id="btn-save" class="bg-white text-black px-5 py-2 rounded-full text-xs font-bold hover:bg-gray-200 transition flex items-center gap-2 shadow-lg shadow-white/10">
                 <i data-lucide="cloud" class="w-3 h-3"></i> <span>Connect</span>
             </button>
         </header>
@@ -65,34 +66,48 @@
             <div class="nav-tab" onclick="switchTab('design', this)">Design</div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-6 pb-20">
-            <div id="tab-profile" class="space-y-4">
-                <div class="p-3 bg-white/5 border border-white/5 rounded-lg">
-                    <label class="text-[10px] text-zinc-400 font-bold uppercase">Unique Username</label>
-                    <input id="in-username" type="text" class="input-field mt-1 !bg-black" placeholder="username">
+        <div class="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
+            <div id="tab-profile" class="space-y-5">
+                <div class="p-4 bg-white/5 border border-white/5 rounded-xl">
+                    <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-2">Unique Username</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3.5 text-zinc-500 font-mono">@</span>
+                        <input id="in-username" type="text" class="input-field pl-8 !bg-black" placeholder="username">
+                    </div>
+                    <p class="text-[10px] text-zinc-600 mt-2">Required. This will be your link ID.</p>
                 </div>
+
                 <div>
-                    <label class="text-[10px] text-zinc-400 font-bold uppercase">Display Name</label>
+                    <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-2">Display Name</label>
                     <input id="in-name" type="text" class="input-field" placeholder="Fahad Malik" oninput="render()">
                 </div>
                 <div>
-                    <label class="text-[10px] text-zinc-400 font-bold uppercase">Role</label>
+                    <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-2">Role</label>
                     <input id="in-role" type="text" class="input-field" placeholder="Creator" oninput="render()">
                 </div>
                 <div>
-                    <label class="text-[10px] text-zinc-400 font-bold uppercase">Bio</label>
-                    <textarea id="in-bio" rows="2" class="input-field resize-none" oninput="render()">Building the future.</textarea>
+                    <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-2">Bio</label>
+                    <textarea id="in-bio" rows="3" class="input-field resize-none" oninput="render()">Building the future.</textarea>
                 </div>
             </div>
 
             <div id="tab-links" class="hidden space-y-4">
-                <input id="in-gh" type="text" class="input-field" placeholder="GitHub Username" oninput="render()">
-                <input id="in-tw" type="text" class="input-field" placeholder="Twitter Handle" oninput="render()">
-                <input id="in-web" type="text" class="input-field" placeholder="Portfolio URL" oninput="render()">
+                 <div>
+                    <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-2">GitHub Username</label>
+                    <input id="in-gh" type="text" class="input-field" placeholder="username" oninput="render()">
+                </div>
+                 <div>
+                    <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-2">Twitter Handle</label>
+                    <input id="in-tw" type="text" class="input-field" placeholder="username" oninput="render()">
+                </div>
+                 <div>
+                    <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-2">Portfolio URL</label>
+                    <input id="in-web" type="text" class="input-field" placeholder="https://..." oninput="render()">
+                </div>
             </div>
 
             <div id="tab-design" class="hidden space-y-4">
-                <label class="text-[10px] text-zinc-400 font-bold uppercase">Theme Color</label>
+                <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-2">Theme Color</label>
                 <div class="flex gap-4">
                     <div class="color-dot bg-violet-500 active" onclick="setColor('#8b5cf6', this)"></div>
                     <div class="color-dot bg-cyan-500" onclick="setColor('#06b6d4', this)"></div>
@@ -104,12 +119,12 @@
     </aside>
 
     <main class="flex-1 bg-page relative hidden md:flex items-center justify-center overflow-hidden">
-        <div id="ambient-glow" class="absolute w-[500px] h-[500px] bg-violet-600 rounded-full blur-[150px] opacity-20 transition-colors duration-500"></div>
+        <div id="ambient-glow" class="absolute w-[500px] h-[500px] bg-violet-600 rounded-full blur-[150px] opacity-20 transition-colors duration-500 pointer-events-none"></div>
         
-        <div class="w-[340px] h-[700px] bg-black rounded-[40px] border-[8px] border-[#1a1a1a] shadow-2xl relative overflow-hidden flex flex-col pt-12">
+        <div class="w-[360px] h-[720px] bg-black rounded-[48px] border-[8px] border-[#1a1a1a] shadow-2xl relative overflow-hidden flex flex-col pt-12">
             <div class="absolute top-0 left-0 right-0 h-6 flex justify-center z-20"><div class="w-24 h-5 bg-black rounded-b-xl"></div></div>
             
-            <div class="flex-1 overflow-y-auto p-6 text-center">
+            <div class="flex-1 overflow-y-auto p-6 text-center no-scrollbar">
                 <div class="relative inline-block mb-4">
                     <div id="p-avatar-glow" class="absolute -inset-1 bg-gradient-to-tr from-violet-600 to-black rounded-full blur opacity-70"></div>
                     <img id="p-avatar" src="https://ui-avatars.com/api/?name=User&background=111&color=fff" class="relative w-24 h-24 rounded-full border-4 border-black object-cover">
@@ -121,13 +136,18 @@
                 <div class="mt-8 space-y-2">
                     <div id="lnk-gh" class="hidden p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-left flex items-center gap-3"><i data-lucide="github" class="w-4 h-4"></i> GitHub</div>
                     <div id="lnk-tw" class="hidden p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-left flex items-center gap-3"><i data-lucide="twitter" class="w-4 h-4 text-sky-400"></i> Twitter</div>
+                    <div id="lnk-web" class="hidden p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-left flex items-center gap-3"><i data-lucide="globe" class="w-4 h-4 text-emerald-500"></i> Portfolio</div>
                 </div>
+            </div>
+            
+             <div class="p-6 text-center opacity-30">
+                <span class="text-[10px] font-bold tracking-[0.2em]">NEXUS</span>
             </div>
         </div>
     </main>
 
     <script>
-        // 1. FIREBASE CONFIG (Using Compat Syntax)
+        // 1. FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyCAGwej9kwnaf9XyqreS2kM9_NLpEa6dOM",
             authDomain: "nexusbio.firebaseapp.com",
@@ -142,12 +162,14 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
+            
+            // Connection Success
             showToast("System Online", "success");
             document.getElementById('status-dot').classList.replace('bg-red-500', 'bg-green-500');
-            document.getElementById('btn-save').innerText = "Publish Profile";
+            document.getElementById('btn-save').innerHTML = `Save Profile`;
         } catch (e) {
             console.error(e);
-            showToast("Firebase Failed", "error");
+            showToast("Firebase Error", "error");
         }
 
         // 3. PUBLISH FUNCTION
@@ -155,9 +177,10 @@
             if (!db) return showToast("Database Offline", "error");
             
             const username = document.getElementById('in-username').value.trim().toLowerCase();
-            if(!username) return showToast("Enter Username!", "error");
+            if(!username) return showToast("Username Required!", "error");
 
             const btn = document.getElementById('btn-save');
+            const originalText = btn.innerHTML;
             btn.innerText = "Saving...";
 
             try {
@@ -175,20 +198,21 @@
                 });
 
                 showToast("Profile Published!", "success");
-                btn.innerHTML = `<i data-lucide="check" class="w-3 h-3"></i> Live`;
+                btn.innerHTML = `<i data-lucide="check" class="w-3 h-3"></i> Saved`;
                 
                 // Show Link Alert
                 setTimeout(() => {
                     const link = `${window.location.href.split('?')[0]}?u=${username}`;
                     prompt("Your Profile is Live! Copy this link:", link);
-                    btn.innerText = "Publish Updates";
+                    btn.innerHTML = originalText;
                     lucide.createIcons();
-                }, 500);
+                }, 1000);
 
             } catch(e) {
                 console.error(e);
-                showToast("Save Failed: " + e.code, "error");
-                btn.innerText = "Try Again";
+                showToast("Failed: " + e.code, "error");
+                btn.innerText = "Retry";
+                alert("If this failed, check if you enabled 'Test Mode' in Firebase Rules.");
             }
         });
 
@@ -227,6 +251,10 @@
             // Toggle Links
             const gh = document.getElementById('in-gh').value;
             document.getElementById('lnk-gh').style.display = gh ? 'flex' : 'none';
+            const tw = document.getElementById('in-tw').value;
+            document.getElementById('lnk-tw').style.display = tw ? 'flex' : 'none';
+             const web = document.getElementById('in-web').value;
+            document.getElementById('lnk-web').style.display = web ? 'flex' : 'none';
         }
 
         function setColor(hex, el) {
